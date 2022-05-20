@@ -51,13 +51,13 @@ function randomString(length) {
 }
 
 // 随机生成邮箱
-function randomEmail() {
-  const email = `${randomString(8)}@lihuipeng.love`;
+function randomEmail(mailDomain) {
+  const email = `${randomString(8)}@${mailDomain}`;
   return email;
 }
 
-async function doSignup(clientKey) {
-  const email = randomEmail();
+async function doSignup(mailDomain, clientKey) {
+  const email = randomEmail(mailDomain);
   logger.info("邮箱生成完成！");
 
   // 处理验证码
@@ -109,6 +109,7 @@ Email: ${email}`);
 }
 
 (async () => {
+  let mailDomain = reader.question("Mail Domain: ");
   let clientKey = reader.question("Yescaptcha ClientKey: ");
   let count = reader.question("Register Count: ");
   let dirPath = reader.question("Save Path: ");
@@ -126,12 +127,12 @@ Email: ${email}`);
   for (let i = 0; i < count; i++) {
     try {
       logger.info("开始注册第" + (i + 1) + "个邮箱。。。");
-      const result = await doSignup(clientKey);
+      const result = await doSignup(mailDomain, clientKey);
       fs.appendFileSync(
         savaPath,
         `${result.email}\t${result.privateKey}\t${result.publicKey}\n`
       );
-      logger.info("第" + (i + 1) + "个邮箱注册完成。。。");
+      logger.info("第" + (i + 1) + "个邮箱注册完成！");
     } catch (error) {
       logger.error(
         "第" +
