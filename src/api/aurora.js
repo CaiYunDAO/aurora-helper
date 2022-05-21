@@ -2,16 +2,17 @@ const axios = require("axios").default;
 const setCookie = require("set-cookie-parser");
 const { JSDOM } = require("jsdom");
 
-const client = axios.create({
+const _client = axios.create({
   baseURL: "https://aurora.plus",
   headers: {
     "User-Agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36 Edg/101.0.1210.39",
   },
+  timeout: 30000,
 });
 
-async function getParam() {
-  const resp = await client.get("/signup", {
+async function getParam(uri) {
+  const resp = await _client.get(uri, {
     headers: {
       accept:
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -35,16 +36,32 @@ async function getParam() {
 }
 
 module.exports = {
-  async signup(data) {
-    const { cookie, csrfToken } = await getParam();
-    const resp = await client.post("/api/user/sign-up", data, {
+  async goto(uri) {
+    const { cookie, csrfToken } = await getParam(uri);
+    return axios.create({
+      baseURL: "https://aurora.plus",
       headers: {
-        "Content-Type": "application/json",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36 Edg/101.0.1210.39",
         Cookie: cookie,
         "XSRF-TOKEN": csrfToken,
+        Origin: "https://aurora.plus",
+        Referer: "https://aurora.plus" + uri,
       },
+      timeout: 30000,
     });
-    return resp;
+  },
+  async signup(client, data) {
+    const resp = await client.post("/api/user/sign-up", data);
+    return resp.data;
+  },
+  async getNonce(client, data) {
+    const resp = await client.post("/api/user/get-nonce", data);
+    return resp.data;
+  },
+  async metamaskLogin(client, data) {
+    const resp = await client.post("/api/user/metamask-login", data);
+    return resp.data;
   },
 };
 

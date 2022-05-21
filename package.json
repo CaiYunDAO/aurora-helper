@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "pkg index.js"
+    "build:win": "pkg index.js -t win -c package.json",
+    "build:macos": "pkg index.js -t macos -c package.json"
   },
   "author": "",
   "license": "ISC",
@@ -16,7 +17,7 @@
     "ethers": "^5.6.6",
     "jsdom": "^19.0.0",
     "puppeteer-core": "^14.1.0",
-    "readline-sync": "^1.4.10",
+    "replace-in-file": "^6.3.2",
     "set-cookie-parser": "^2.4.8",
     "winston": "^3.7.2"
   },
@@ -24,11 +25,7 @@
     "pkg": "^5.7.0"
   },
   "pkg": {
-    "scripts": "index.js",
-    "targets": [
-      "node14-windows-x64",
-      "node14-macos-x64"
-    ],
+    "assets": "./banner.txt",
     "outputPath": "dist"
   }
 }

@@ -1,4 +1,5 @@
 const axios = require("axios").default;
+const { sleep } = require("../util");
 
 const client = axios.create({
   baseURL: "https://api.yescaptcha.com",
@@ -6,12 +7,6 @@ const client = axios.create({
     "Content-Type": "application/json",
   },
 });
-
-async function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
 
 module.exports = {
   async resolve(clientKey) {

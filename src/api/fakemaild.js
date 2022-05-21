@@ -1,14 +1,9 @@
 const axios = require("axios").default;
+const { sleep } = require("../util");
 
 const client = axios.create({
   baseURL: "http://43.132.160.220:14000",
 });
-
-async function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
 
 async function getAuroraEmail(toEmail) {
   for (let i = 0; i < 30; i++) {
