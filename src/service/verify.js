@@ -21,20 +21,16 @@ module.exports = async function () {
     crlfDelay: Infinity,
   });
   for await (const line of rl) {
-    const arr = line.split("\t");
-    const privateKey = arr[2];
-    const address = arr[3];
-    let status = arr.length >= 5 ? arr[4] === "true" : false;
+    const privateKey = line.match(/0x[^\s]{64}/)[0];
+    const address = line.match(/0x[^\s]{40}/)[0];
     try {
       logger.info("开始验证，钱包地址：" + address);
-      if (!status) {
-        status = await doVerify(privateKey, address);
-        replace.replaceInFileSync({
-          files: accountsPath,
-          from: new RegExp(`${address}.*$`, "m"),
-          to: address + "\t" + status,
-        });
-      }
+      const status = await doVerify(privateKey, address);
+      replace.replaceInFileSync({
+        files: accountsPath,
+        from: new RegExp(`${address}.*$`, "m"),
+        to: address + "\t" + status,
+      });
       logger.info("验证完成，空投状态：" + status);
     } catch (error) {
       logger.info(
