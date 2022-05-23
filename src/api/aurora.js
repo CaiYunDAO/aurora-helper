@@ -1,55 +1,47 @@
 const axios = require("axios").default;
-const setCookie = require("set-cookie-parser");
+const { wrapper } = require("axios-cookiejar-support");
+const { CookieJar } = require("tough-cookie");
 const { JSDOM } = require("jsdom");
-
-const _client = axios.create({
-  baseURL: "https://aurora.plus",
-  headers: {
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36 Edg/101.0.1210.39",
-  },
-  timeout: 30000,
-});
-
-async function getParam(uri) {
-  const resp = await _client.get(uri, {
-    headers: {
-      accept:
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-      "accept-language": "zh-CN,zh;q=0.9",
-      "cache-control": " max-age=0",
-    },
-  });
-  const cookie = setCookie.parse(
-    setCookie.splitCookiesString(resp.headers["set-cookie"])
-  );
-  const dom = new JSDOM(resp.data);
-  const nextData = JSON.parse(
-    dom.window.document.getElementById("__NEXT_DATA__").innerHTML
-  );
-  return {
-    cookie: `aurora-plus-country=HK; _csrf=${
-      cookie.find((e) => e.name === "_csrf").value
-    }`,
-    csrfToken: nextData.props.pageProps.csrfToken,
-  };
-}
 
 module.exports = {
   async goto(uri) {
-    const { cookie, csrfToken } = await getParam(uri);
-    return axios.create({
-      baseURL: "https://aurora.plus",
+    const jar = new CookieJar();
+    const client = wrapper(
+      axios.create({
+        baseURL: "https://aurora.plus",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36 Edg/101.0.1210.39",
+        },
+        timeout: 30000,
+        jar,
+      })
+    );
+
+    const resp = await client.get(uri, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36 Edg/101.0.1210.39",
-        Cookie: cookie,
-        "XSRF-TOKEN": csrfToken,
-        Origin: "https://aurora.plus",
-        Referer: "https://aurora.plus" + uri,
+        accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "cache-control": " max-age=0",
       },
-      timeout: 30000,
     });
+    const dom = new JSDOM(resp.data);
+    const nextData = JSON.parse(
+      dom.window.document.getElementById("__NEXT_DATA__").innerHTML
+    );
+    client.interceptors.request.use((config) => {
+      Object.assign(config.headers, {
+        "XSRF-TOKEN": nextData.props.pageProps.csrfToken,
+        Origin: "https://aurora.plus",
+        Referer: "https://aurora.plus" + resp.request.path,
+      });
+      return config;
+    });
+
+    await client.head("/privacy");
+
+    return client;
   },
   async signup(client, data) {
     const resp = await client.post("/api/user/sign-up", data);

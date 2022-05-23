@@ -1,41 +1,12 @@
-const { goto, getNonce, metamaskLogin } = require("../api/aurora");
-const { getBrowserPath, sleep, question, logger } = require("../util");
-const ethers = require("ethers");
-const puppeteer = require("puppeteer-core");
+const { selectUserState } = require("./common");
+const { question, logger } = require("../util");
 const fs = require("fs");
 const readline = require("readline");
 const replace = require("replace-in-file");
 
 async function doVerify(privateKey, address) {
-  const client = await goto("/login");
-  const { nonce } = await getNonce(client, { address });
-  const wallet = new ethers.Wallet(privateKey);
-  const signedMessage = await wallet.signMessage(`Log in to Aurora+. 
-
-Security code: ${nonce}.`);
-  const { link } = await metamaskLogin(client, {
-    address,
-    signedMessage,
-  });
-
-  const browser = await puppeteer.launch({
-    executablePath: getBrowserPath(),
-    headless: true,
-    defaultViewport: null,
-    timeout: 120000,
-  });
-  const page = await browser.newPage();
-  await page.goto(link);
-  const response = await page.waitForResponse((response) => {
-    const request = response.request();
-    return (
-      request.method() == "GET" &&
-      request.url().indexOf("/rest/v1/users?select=") > -1
-    );
-  });
-  const userState = await response.json();
-  await browser.close();
-  return userState[0].onboarded;
+  const userState = await selectUserState(privateKey, address);
+  return userState.onboarded;
 }
 
 module.exports = async function () {
@@ -51,9 +22,9 @@ module.exports = async function () {
   });
   for await (const line of rl) {
     const arr = line.split("\t");
-    const privateKey = arr[1];
-    const address = arr[2];
-    let status = arr.length >= 4 ? arr[3] === "true" : false;
+    const privateKey = arr[2];
+    const address = arr[3];
+    let status = arr.length >= 5 ? arr[4] === "true" : false;
     try {
       logger.info("开始验证，钱包地址：" + address);
       if (!status) {

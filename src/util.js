@@ -60,4 +60,7 @@ module.exports = {
     const email = `${randomString(8)}@${mailDomain}`;
     return email;
   },
+  randomIntBetween(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  },
 };
