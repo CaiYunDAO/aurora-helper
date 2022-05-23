@@ -14,6 +14,7 @@
     "axios": "^0.27.2",
     "axios-cookiejar-support": "^4.0.1",
     "chrome-finder": "^1.0.7",
+    "dotenv": "^16.0.1",
     "edge-paths": "^2.2.1",
     "ethers": "^5.6.6",
     "jsdom": "^19.0.0",
@@ -26,7 +27,10 @@
     "pkg": "^5.7.0"
   },
   "pkg": {
-    "assets": "./banner.txt",
+    "assets": [
+      "./banner.txt",
+      "./.env"
+    ],
     "outputPath": "dist"
   }
 }

@@ -8,6 +8,12 @@
 
 ## 安装
 
+1. 邮箱服务器搭建：https://github.com/xjjdog/crazy-email-recv-srv
+
+2. 修改`.env`文件，配置邮箱服务器地址，默认为`http://127.0.0.1:14000`
+
+3. npm 依赖安装：
+
 ```
 npm install
 ```

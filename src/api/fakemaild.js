@@ -1,8 +1,13 @@
 const axios = require("axios").default;
+const path = require("path");
 const { sleep } = require("../util");
 
+require("dotenv").config({
+  path: path.resolve(__dirname, "../../.env"),
+});
+
 const client = axios.create({
-  baseURL: "http://43.132.160.220:14000",
+  baseURL: process.env.EMAIL_SERVER,
 });
 
 async function getAuroraEmail(toEmail) {
